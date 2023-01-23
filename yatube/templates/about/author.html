@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Об авторе проекта{% endblock %}
+{% block content %}
+<div class=>
+  <h1>Привет, я Евгений</h1>
+  <img src="{% static 'img/1.png' %}" >
+  <hr>
+    <div>
+      <a class="btn btn-outline-dark" href="https://github.com/EvgenyRomashov" role="button">GitHub</a>
+      <a class="btn btn-outline-primary" href="https://vk.com/evgeny_romashov" role="button">VK</a>
+      <a class="btn btn-outline-danger" href="https://vk.com/evgeny_romashov" role="button">HH</a>   
+    </div>
+  <hr>
+    <p>
+      Тут я размещу информацию о себе, используя свои умения верстать.
+      Картинки, блоки, элементы бустрап.
+      А может быть, просто напишу несколько абзацев текста.
+    </p>
+</div>
+{% endblock %} 
