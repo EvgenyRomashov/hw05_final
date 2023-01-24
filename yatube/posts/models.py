@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import UniqueConstraint, CheckConstraint, Q, F
 from core.models import CreateModel
 
 User = get_user_model()
@@ -61,7 +62,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE
     )
     text = models.TextField(
-        verbose_name='Текст коммента',
+        'Текст коммента',
         help_text='Коммент'
     )
     created = models.DateTimeField(auto_now_add=True)
@@ -84,3 +85,11 @@ class Follow(models.Model):
         on_delete=models.CASCADE,
         related_name='following'
     )
+
+    class Meta:
+        constraints = [
+            CheckConstraint(
+                check=~Q(user=F('author')), name='check_follow_self'),
+            UniqueConstraint(
+                fields=['user', 'author'], name='unique_follow'),
+        ]

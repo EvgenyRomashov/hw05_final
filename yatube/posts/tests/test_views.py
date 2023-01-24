@@ -31,20 +31,6 @@ class PostViewTest(TestCase):
             slug='test-slug',
             description='Тестовое описание'
         )
-        cls.post = Post.objects.create(
-            text='Текстовый текст',
-            author=cls.user,
-            group=cls.group
-        )
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
-
-    def setUp(self):
-        self.authorized_client = Client()
-        self.authorized_client.force_login(PostViewTest.user)
         small_gif = (
             b'\x47\x49\x46\x38\x39\x61\x02\x00'
             b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -58,12 +44,21 @@ class PostViewTest(TestCase):
             content=small_gif,
             content_type='image/gif'
         )
-        self.post = Post.objects.create(
+        cls.post = Post.objects.create(
             text='Текстовый текст',
-            author=self.user,
-            group=self.group,
+            author=cls.user,
+            group=cls.group,
             image=uploaded
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+
+    def setUp(self):
+        self.authorized_client = Client()
+        self.authorized_client.force_login(PostViewTest.user)
 
     def funс_post_in_context(self, response):
         """Функция для проверки наличия поста в контексте."""
@@ -98,19 +93,14 @@ class PostViewTest(TestCase):
     def test_index_show_correct_context(self):
         """Тест контекста передаваемого на начальную страницу"""
         response = self.authorized_client.get(reverse('posts:index'))
+        RESP_CONTEXT_0 = response.context['page_obj'][0]
         self.funс_post_in_context(response)
         self.assertIsInstance(response.context['page_obj'], Page)
         self.assertGreater(response.context['page_obj'].paginator.count, 0)
-        self.assertEqual(response.context['page_obj'][0].text, self.post.text)
-        self.assertEqual(
-            response.context['page_obj'][0].author, self.post.author
-        )
-        self.assertEqual(
-            response.context['page_obj'][0].group, self.post.group
-        )
-        self.assertEqual(
-            response.context['page_obj'][0].image.name, self.post.image
-        )
+        self.assertEqual(RESP_CONTEXT_0.text, self.post.text)
+        self.assertEqual(RESP_CONTEXT_0.author, self.post.author)
+        self.assertEqual(RESP_CONTEXT_0.group, self.post.group)
+        self.assertEqual(RESP_CONTEXT_0.image.name, self.post.image)
 
     def test_context_to_group_list(self):
         """Тест контекста для списка постов отфильтрованного по группе"""
@@ -129,7 +119,7 @@ class PostViewTest(TestCase):
         self.assertEqual(
             response.context['page_obj'][0].image.name, self.post.image
         )
-        self.assertEqual(response.context['group'].id, self.group.id)
+        self.assertEqual(response.context['group'], self.group)
 
     def test_context_to_profile(self):
         """Тест контекста для списка постов отфильтрованного по автору"""
@@ -148,7 +138,7 @@ class PostViewTest(TestCase):
         self.assertEqual(
             response.context['page_obj'][0].image.name, self.post.image
         )
-        self.assertEqual(response.context['author'].id, self.user.id)
+        self.assertEqual(response.context['author'], self.user)
 
     def test_context_to_post_detail(self):
         """Тест контекста для одного поста"""
@@ -238,47 +228,52 @@ class FollowViewsTests(TestCase):
         self.follower.force_login(self.user_follower)
         self.following.force_login(self.user_following)
         self.post = Post.objects.create(
-            text='Текст в посте подписок',
+            text='Текст подписок',
             author=self.user_following
         )
 
     def test_aftorized_user_can_subscribe(self):
         """Тест возможности подписаться авторизированным пользователем."""
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.user_follower, author=self.user_following))
         self.follower.get(reverse(
             'posts:profile_follow',
-            kwargs={'username': self.user_following.username}
-        )
-        )
-        self.assertEqual(Follow.objects.count(), 1)
+            kwargs={'username': self.user_following.username}))
+        self.assertTrue(
+            Follow.objects.filter(
+                user=self.user_follower, author=self.user_following))
 
-    def test_aftorized_user_can_subscribe(self):
+    def test_aftorized_user_can_unsubscribe(self):
         """Тест возможности отписаться авторизированным пользователем."""
-        self.follower.get(reverse(
-            'posts:profile_follow',
-            kwargs={'username': self.user_following.username}
-        )
-        )
-        self.follower.get(reverse(
-            'posts:profile_unfollow',
-            kwargs={'username': self.user_following.username}
-        )
-        )
-        self.assertEqual(Follow.objects.count(), 0)
-
-    def test_post_in_subscription(self):
-        """Посты появляются при подписке и удаляются при отписке."""
         Follow.objects.create(user=self.user_follower,
                               author=self.user_following)
-        response_follower = self.follower.get(reverse('posts:follow_index'))
-        response_following = self.following.get(reverse('posts:follow_index'))
-        self.assertIn('page_obj', response_follower.context)
-        self.assertIsInstance(response_follower.context['page_obj'], Page)
+        self.follower.get(reverse(
+            'posts:profile_unfollow',
+            kwargs={'username': self.user_following.username}))
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.user_follower, author=self.user_following))
+
+    def test_post_in_subscription(self):
+        """Посты появляются в избранном при подписке."""
+        Follow.objects.create(user=self.user_follower,
+                              author=self.user_following)
+        response = self.follower.get(reverse('posts:follow_index'))
+        self.assertIn('page_obj', response.context)
+        self.assertIsInstance(response.context['page_obj'], Page)
         self.assertGreater(
-            response_follower.context['page_obj'].paginator.count, 0)
-        self.assertEqual(response_follower.context['page_obj'][0].text,
-                         self.post.text)
-        self.assertNotContains(response_following,
-                               self.post.text)
+            response.context['page_obj'].paginator.count, 0)
+        self.assertIn(self.post, response.context['page_obj'])
+
+    def test_nopost_in_nosubscription(self):
+        """Постов нет в избранном у не подписаных."""
+        Follow.objects.create(user=self.user_follower,
+                              author=self.user_following)
+        response = self.following.get(reverse('posts:follow_index'))
+        self.assertIn('page_obj', response.context)
+        self.assertIsInstance(response.context['page_obj'], Page)
+        self.assertNotIn(self.post, response.context['page_obj'])
 
 
 class PaginatorViewsTest(TestCase):

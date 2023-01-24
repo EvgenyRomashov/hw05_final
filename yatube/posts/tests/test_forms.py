@@ -65,6 +65,11 @@ class PostCreateFormTest(TestCase):
         self.assertEqual(new_post.text, form_data['text'])
         self.assertEqual(new_post.author, self.user)
         self.assertEqual(new_post.group, self.group)
+        self.assertTrue(
+            Post.objects.filter(
+                image='posts/small.gif'
+            ).exists()
+        )
 
     def test_edit_post(self):
         """
@@ -80,15 +85,14 @@ class PostCreateFormTest(TestCase):
             b'\x0A\x00\x3B'
         )
         uploaded = SimpleUploadedFile(
-            name='small.gif',
+            name='verysmall.gif',
             content=small_gif,
             content_type='image/gif'
         )
         post = Post.objects.create(
             text='Текстовый текст',
             author=self.user,
-            group=self.group,
-            image=uploaded
+            group=self.group
         )
         new_group = Group.objects.create(
             title='Новая тестовая группа',
@@ -97,7 +101,8 @@ class PostCreateFormTest(TestCase):
         )
         form_data = {
             'text': 'Новый  текстовый текст',
-            'group': new_group.id
+            'group': new_group.id,
+            'image': uploaded
         }
         self.autorized_client.post(
             reverse('posts:post_edit', kwargs={'post_id': post.id}),
@@ -106,8 +111,13 @@ class PostCreateFormTest(TestCase):
         )
         post_for_edit = Post.objects.last()
         self.assertEqual(post_for_edit.text, form_data['text'])
-        self.assertNotEqual(post.text, post_for_edit.text)
         self.assertEqual(post_for_edit.group.id, form_data['group'])
+        self.assertEqual(post_for_edit.author, self.user)
+        self.assertTrue(
+            Post.objects.filter(
+                image='posts/verysmall.gif'
+            ).exists()
+        )
 
     def test_comment_publishing(self):
         """Тест добавления комментария"""
@@ -126,4 +136,4 @@ class PostCreateFormTest(TestCase):
             'posts:post_detail', kwargs={'post_id': post.pk}
         )
         )
-        self.assertContains(response, 'Тестовый коммент')
+        self.assertContains(response, form_data['text'])

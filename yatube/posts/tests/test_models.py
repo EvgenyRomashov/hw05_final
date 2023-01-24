@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from posts.models import Group, Post
+from posts.models import Group, Post, Comment, Follow
 
 User = get_user_model()
 
@@ -20,14 +20,21 @@ class PostModelTest(TestCase):
             author=cls.user,
             text='Тестовый текст должен быть длиннее 15 символов',
         )
+        cls.comment = Comment.objects.create(
+            post=cls.post,
+            author=cls.user,
+            text='Комментарий длинной не менее 15 символов'
+        )
 
     def test_str(self):
         """Проверяем, что у моделей корректно работает __str__."""
         post = self.post
         group = self.group
+        comment = self.comment
         str_list = {
             post: post.text[:15],
-            group: group.title
+            group: group.title,
+            comment: comment.text[:15]
         }
         for test_models, expected_values in str_list.items():
             with self.subTest(str=str):
@@ -58,3 +65,8 @@ class PostModelTest(TestCase):
             with self.subTest(field=field):
                 self.assertEqual(
                     post._meta.get_field(field).help_text, expected_value)
+
+    def test_follow_self(self):
+        constraint_name = 'check_follow_self'
+        with self.assertRaisesMessage(Exception, constraint_name):
+            Follow.objects.create(user=self.user, author=self.user)

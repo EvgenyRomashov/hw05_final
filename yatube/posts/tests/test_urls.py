@@ -81,6 +81,8 @@ class PostURLTest(TestCase):
         redirected_pages = (
             '/create/',
             f'/posts/{self.post.id}/edit/',
+            f'/profile/{self.post.author}/follow',
+            f'/profile/{self.post.author}/unfollow'
         )
         for page in redirected_pages:
             with self.subTest(address=page):
