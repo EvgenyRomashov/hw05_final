@@ -93,10 +93,10 @@ class PostViewTest(TestCase):
     def test_index_show_correct_context(self):
         """Тест контекста передаваемого на начальную страницу"""
         response = self.authorized_client.get(reverse('posts:index'))
-        RESP_CONTEXT_0 = response.context['page_obj'][0]
         self.funс_post_in_context(response)
         self.assertIsInstance(response.context['page_obj'], Page)
         self.assertGreater(response.context['page_obj'].paginator.count, 0)
+        RESP_CONTEXT_0 = response.context['page_obj'][0]
         self.assertEqual(RESP_CONTEXT_0.text, self.post.text)
         self.assertEqual(RESP_CONTEXT_0.author, self.post.author)
         self.assertEqual(RESP_CONTEXT_0.group, self.post.group)
@@ -236,13 +236,15 @@ class FollowViewsTests(TestCase):
         """Тест возможности подписаться авторизированным пользователем."""
         self.assertFalse(
             Follow.objects.filter(
-                user=self.user_follower, author=self.user_following))
+                user=self.user_follower,
+                author=self.user_following).exists())
         self.follower.get(reverse(
             'posts:profile_follow',
             kwargs={'username': self.user_following.username}))
         self.assertTrue(
             Follow.objects.filter(
-                user=self.user_follower, author=self.user_following))
+                user=self.user_follower,
+                author=self.user_following).exists())
 
     def test_aftorized_user_can_unsubscribe(self):
         """Тест возможности отписаться авторизированным пользователем."""
@@ -253,7 +255,8 @@ class FollowViewsTests(TestCase):
             kwargs={'username': self.user_following.username}))
         self.assertFalse(
             Follow.objects.filter(
-                user=self.user_follower, author=self.user_following))
+                user=self.user_follower,
+                author=self.user_following).exists())
 
     def test_post_in_subscription(self):
         """Посты появляются в избранном при подписке."""
@@ -268,8 +271,10 @@ class FollowViewsTests(TestCase):
 
     def test_nopost_in_nosubscription(self):
         """Постов нет в избранном у не подписаных."""
-        Follow.objects.create(user=self.user_follower,
-                              author=self.user_following)
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.user_following,
+                author=self.user_follower).exists())
         response = self.following.get(reverse('posts:follow_index'))
         self.assertIn('page_obj', response.context)
         self.assertIsInstance(response.context['page_obj'], Page)

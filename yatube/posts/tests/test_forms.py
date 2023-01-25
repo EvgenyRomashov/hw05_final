@@ -65,11 +65,10 @@ class PostCreateFormTest(TestCase):
         self.assertEqual(new_post.text, form_data['text'])
         self.assertEqual(new_post.author, self.user)
         self.assertEqual(new_post.group, self.group)
-        self.assertTrue(
-            Post.objects.filter(
-                image='posts/small.gif'
-            ).exists()
-        )
+        # не знаю как правильно, но только так придумал.
+        # Путь берём из модели и добавляем имя файла.
+        self.assertEqual(new_post.image,
+                         new_post.image.field.upload_to + uploaded.name)
 
     def test_edit_post(self):
         """
@@ -113,11 +112,10 @@ class PostCreateFormTest(TestCase):
         self.assertEqual(post_for_edit.text, form_data['text'])
         self.assertEqual(post_for_edit.group.id, form_data['group'])
         self.assertEqual(post_for_edit.author, self.user)
-        self.assertTrue(
-            Post.objects.filter(
-                image='posts/verysmall.gif'
-            ).exists()
-        )
+        # не знаю как правильно, но только так придумал.
+        # Путь берём из модели и добавляем имя файла.
+        self.assertEqual(post_for_edit.image,
+                         post_for_edit.image.field.upload_to + uploaded.name)
 
     def test_comment_publishing(self):
         """Тест добавления комментария"""
