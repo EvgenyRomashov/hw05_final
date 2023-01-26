@@ -3,11 +3,13 @@
 Подписки
 {% endblock %} 
 {% block content %}
-{% include 'posts/includes/switcher.html' %}
   <h1>Подписки</h1>
+{% include 'posts/includes/switcher.html' %}
+<div class="card-body">
 {% for post in page_obj %}
   {% include 'posts/includes/card_posts.html' with show_author=True show_group=True %}
   {% if not forloop.last %}<hr>{% endif %}
 {% endfor %}
 {% include 'posts/includes/paginator.html' %}
+</div>
 {% endblock %}

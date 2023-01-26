@@ -51,19 +51,15 @@ class Post(CreateModel):
 class Comment(models.Model):
     post = models.ForeignKey(
         Post,
-        verbose_name='Пост',
-        help_text='Текст нового поста',
         on_delete=models.CASCADE
     )
     author = models.ForeignKey(
         User,
-        verbose_name='Автор коммента',
-        help_text='Коммент',
         on_delete=models.CASCADE
     )
     text = models.TextField(
-        'Текст коммента',
-        help_text='Коммент'
+        verbose_name='Текст комментария',
+        help_text='Оставьте комментарий'
     )
     created = models.DateTimeField(auto_now_add=True)
 

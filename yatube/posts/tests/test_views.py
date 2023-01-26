@@ -113,11 +113,12 @@ class PostViewTest(TestCase):
         self.assertGreater(response.context['page_obj'].paginator.count, 0)
         self.assertIn('group', response.context)
         self.assertIsInstance(response.context['group'], Group)
-        self.assertEqual(response.context['page_obj'][0].text, self.post.text)
-        self.assertEqual(response.context['page_obj'][0].author, self.user)
-        self.assertEqual(response.context['page_obj'][0].group, self.group)
+        RESP_CONTEXT_0 = response.context['page_obj'][0]
+        self.assertEqual(RESP_CONTEXT_0 .text, self.post.text)
+        self.assertEqual(RESP_CONTEXT_0 .author, self.user)
+        self.assertEqual(RESP_CONTEXT_0 .group, self.group)
         self.assertEqual(
-            response.context['page_obj'][0].image.name, self.post.image
+            RESP_CONTEXT_0.image.name, self.post.image
         )
         self.assertEqual(response.context['group'], self.group)
 
@@ -132,11 +133,12 @@ class PostViewTest(TestCase):
         self.assertGreater(response.context['page_obj'].paginator.count, 0)
         self.assertIn('author', response.context)
         self.assertIsInstance(response.context['author'], User)
-        self.assertEqual(response.context['page_obj'][0].text, self.post.text)
-        self.assertEqual(response.context['page_obj'][0].author, self.user)
-        self.assertEqual(response.context['page_obj'][0].group, self.group)
+        RESP_CONTEXT_0 = response.context['page_obj'][0]
+        self.assertEqual(RESP_CONTEXT_0.text, self.post.text)
+        self.assertEqual(RESP_CONTEXT_0.author, self.user)
+        self.assertEqual(RESP_CONTEXT_0.group, self.group)
         self.assertEqual(
-            response.context['page_obj'][0].image.name, self.post.image
+            RESP_CONTEXT_0.image.name, self.post.image
         )
         self.assertEqual(response.context['author'], self.user)
 
@@ -147,12 +149,13 @@ class PostViewTest(TestCase):
         )
         )
         self.assertIn('post', response.context)
-        self.assertIsInstance(response.context['post'], Post)
-        self.assertEqual(response.context['post'].text, self.post.text)
-        self.assertEqual(response.context['post'].author, self.user)
-        self.assertEqual(response.context['post'].group, self.group)
+        RESP_CONTEXT_0 = response.context['post']
+        self.assertIsInstance(RESP_CONTEXT_0, Post)
+        self.assertEqual(RESP_CONTEXT_0.text, self.post.text)
+        self.assertEqual(RESP_CONTEXT_0.author, self.user)
+        self.assertEqual(RESP_CONTEXT_0.group, self.group)
         self.assertEqual(
-            response.context['post'].image.name, self.post.image
+            RESP_CONTEXT_0.image.name, self.post.image
         )
 
     def test_context_to_create_and_edit_post(self):

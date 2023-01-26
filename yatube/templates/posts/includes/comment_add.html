@@ -7,7 +7,23 @@
       <form method="post" action="{% url 'posts:add_comment' post.id %}">
         {% csrf_token %}      
         <div class="form-group mb-2">
-          {{ form.text|addclass:"form-control" }}
+          {% for field in form %}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+              {% if field.field.required %}
+                <span class="required text-danger">*</span>
+              {% endif %}
+            </label>    
+            {{ field|addclass:'form-control' }}
+            {% if field.help_text %}
+              <small
+                id="{{ field.id_for_label }}-help"
+                class="form-text text-muted"
+                >
+                  {{ field.help_text|safe }}
+              </small>
+            {% endif %}
+          {% endfor %}   
         </div>
         <button type="submit" class="btn btn-primary">Отправить</button>
       </form>

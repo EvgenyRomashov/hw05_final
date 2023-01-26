@@ -1,12 +1,6 @@
-{# templates/posts/includes/paginator.html #}
-
-{% comment %}
-Отрисовываем навигацию паджинатора только если
-все посты не помещаются на первую страницу
-{% endcomment %}
 {% if page_obj.has_other_pages %}
 <nav aria-label="Page navigation" class="my-5">
-  <ul class="pagination">
+  <ul class="pagination justify-content-center">
     {% if page_obj.has_previous %}
       <li class="page-item"><a class="page-link" href="?page=1">Первая</a></li>
       <li class="page-item">
